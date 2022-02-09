@@ -64,16 +64,3 @@ public class Continuation<T> implements Iterable<T>{
         return Iterable.super.spliterator();
     }
 }
-
-
-/*
-foo() {
-...
-yeild(3);
-...
-}
-
-Continuation c(foo);
-c.run();
-
- */
