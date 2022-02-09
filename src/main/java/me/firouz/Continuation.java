@@ -9,23 +9,23 @@ import java.util.function.Consumer;
 public class Continuation<T> implements Iterable<T>{
     private final Thread thread;
     private final ReentrantLock lock;
-    private final Condition mainRountinCondition;
-    private final Condition subRountinCondition;
+    private final Condition mainRoutineCondition;
+    private final Condition subRoutineCondition;
     private T value;
 
     public Continuation(Runnable runnable) {
         this.thread = new Thread(runnable);
         lock = new ReentrantLock();
-        mainRountinCondition = lock.newCondition();
-        subRountinCondition = lock.newCondition();
+        mainRoutineCondition = lock.newCondition();
+        subRoutineCondition = lock.newCondition();
     }
 
     public void yield(T value) throws InterruptedException {
         try {
             this.value = value;
             lock.lock();
-            mainRountinCondition.signal();
-            subRountinCondition.await();
+            mainRoutineCondition.signal();
+            subRoutineCondition.await();
         }finally {
             lock.unlock();
         }
@@ -36,8 +36,8 @@ public class Continuation<T> implements Iterable<T>{
             lock.lock();
             if (thread.getState() == Thread.State.NEW) {
                 thread.start();
-            } else subRountinCondition.signal();
-            mainRountinCondition.await();
+            } else subRoutineCondition.signal();
+            mainRoutineCondition.await();
             return value;
         }finally {
             lock.unlock();
