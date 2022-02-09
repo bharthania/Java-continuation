@@ -24,10 +24,7 @@ public class Continuation<T> implements Iterable<T>{
         try {
             this.value = value;
             lock.lock();
-//        subRountineLatch = new CountDownLatch(1);
-//        mainRountineLatch.countDown();
             mainRountinCondition.signal();
-//        subRountineLatch.await();
             subRountinCondition.await();
         }finally {
             lock.unlock();
@@ -37,11 +34,9 @@ public class Continuation<T> implements Iterable<T>{
     public T goOn() throws InterruptedException {
         try {
             lock.lock();
-//        mainRountineLatch = new CountDownLatch(1);
             if (thread.getState() == Thread.State.NEW) {
                 thread.start();
-            } else subRountinCondition.signal(); //subRountineLatch.countDown();
-//        mainRountineLatch.await();
+            } else subRountinCondition.signal();
             mainRountinCondition.await();
             return value;
         }finally {
