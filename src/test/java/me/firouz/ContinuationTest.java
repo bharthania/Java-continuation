@@ -7,7 +7,7 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 
 public class ContinuationTest {
-    ContinuationUsingLatch<Integer> continuation;
+    Continuation<Integer> continuation;
     int step = 0;
 
     @Test
@@ -28,7 +28,7 @@ public class ContinuationTest {
             }
         };
 
-        continuation  = new ContinuationUsingLatch<>(runnable);
+        continuation  = new Continuation<>(runnable);
 
         Integer i = -1;
         do {
