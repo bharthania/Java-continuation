@@ -1,12 +1,9 @@
 package me.firouz;
 
-import java.util.Iterator;
-import java.util.Spliterator;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
 
-public class Continuation<T> implements Iterable<T>{
+public class Continuation<T> {
     private final Thread mainRoutineThread;
     private final Thread subRoutineThread;
     private final ReentrantLock lock;
@@ -23,6 +20,7 @@ public class Continuation<T> implements Iterable<T>{
 
         this.subRoutineThread = new Thread(() -> {
             runnable.run();
+            //Main continuation body is finished here. The rest is to mark the end of subroutine and wakeup goOn()
             finished = true;
             try {
                 lock.lock();
@@ -72,41 +70,5 @@ public class Continuation<T> implements Iterable<T>{
         public IllegalCallException(String message) {
             super(message);
         }
-    }
-
-
-    //=====================================================
-    // Iterable implementation
-    //=====================================================
-
-    @Override
-    public Iterator<T> iterator() {
-
-        return new Iterator<T>() {
-            @Override
-            public boolean hasNext() {
-                try {
-                    goOn();
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                return !Continuation.this.finished;
-            }
-
-            @Override
-            public T next() {
-                return Continuation.this.value;
-            }
-        };
-    }
-
-    @Override
-    public void forEach(Consumer<? super T> action) {
-        Iterable.super.forEach(action);
-    }
-
-    @Override
-    public Spliterator<T> spliterator() {
-        throw new UnsupportedOperationException();
     }
 }

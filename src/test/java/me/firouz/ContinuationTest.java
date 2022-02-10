@@ -30,7 +30,7 @@ public class ContinuationTest {
 
         continuation  = new Continuation<>(runnable);
 
-        Integer i = -1;
+        Integer i;
         do {
             steps.add("1:" + step++);
             i = continuation.goOn();
@@ -71,9 +71,7 @@ public class ContinuationTest {
         Runnable runnable = () -> {
             try {
                 continuation.yield(3);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } catch (Continuation.IllegalCallException e) {
+            } catch (InterruptedException | Continuation.IllegalCallException e) {
                 throw new RuntimeException(e);
             }
         };
@@ -89,9 +87,7 @@ public class ContinuationTest {
         Runnable runnable = () -> {
             try {
                 continuation.yield(3);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } catch (Continuation.IllegalCallException e) {
+            } catch (InterruptedException | Continuation.IllegalCallException e) {
                 throw new RuntimeException(e);
             }
         };
@@ -102,23 +98,4 @@ public class ContinuationTest {
         continuation.goOn();
         assertTrue(continuation.isFinished());
     }
-
-    @Test
-    public void forEachTest() {
-        Runnable runnable = () -> {
-            try {
-                for(int i=0; i<10; i++) {
-                    continuation.yield(i);
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        };
-
-        continuation  = new Continuation<>(runnable);
-
-        int k = 0;
-        for(int j: continuation)    assertEquals(k++, j);
-    }
-
 }
