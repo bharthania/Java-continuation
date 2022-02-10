@@ -13,16 +13,27 @@ public class Continuation<T> implements Iterable<T>{
     private final Condition mainRoutineCondition;
     private final Condition subRoutineCondition;
     private T value;
+    private boolean finished = false;
 
     public Continuation(Runnable runnable) {
         this.ownerThread = Thread.currentThread();
-        this.thread = new Thread(runnable);
         lock = new ReentrantLock();
         mainRoutineCondition = lock.newCondition();
         subRoutineCondition = lock.newCondition();
+
+        this.thread = new Thread(() -> {
+            runnable.run();
+            finished = true;
+            try {
+                lock.lock();
+                mainRoutineCondition.signal();
+            }finally {
+                lock.unlock();
+            }
+        });
     }
 
-    public void yield(T value) throws InterruptedException, IllegalCallException {
+    public void yield(T value) throws InterruptedException {
         if(Thread.currentThread() != this.thread)
             throw new IllegalCallException("yield() can only be called from within continuation Runnable.");
         try {
@@ -35,9 +46,12 @@ public class Continuation<T> implements Iterable<T>{
         }
     }
 
-    public T goOn() throws InterruptedException, IllegalCallException {
+    public T goOn() throws InterruptedException {
+        value = null;
         if(Thread.currentThread() != ownerThread)
             throw new IllegalCallException("goOn() can only be called from within continuation owner thread.");
+        if(finished)
+            throw new IllegalCallException("goOn() can not be called on terminated continuation.");
         try {
             lock.lock();
             if (thread.getState() == Thread.State.NEW) {
@@ -50,7 +64,11 @@ public class Continuation<T> implements Iterable<T>{
         }
     }
 
-    public static class IllegalCallException extends Exception {
+    public boolean isFinished() {
+        return finished;
+    }
+
+    public static class IllegalCallException extends RuntimeException {
         public IllegalCallException(String message) {
             super(message);
         }
@@ -63,7 +81,23 @@ public class Continuation<T> implements Iterable<T>{
 
     @Override
     public Iterator<T> iterator() {
-        return null;
+
+        return new Iterator<T>() {
+            @Override
+            public boolean hasNext() {
+                try {
+                    goOn();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                return !Continuation.this.finished;
+            }
+
+            @Override
+            public T next() {
+                return Continuation.this.value;
+            }
+        };
     }
 
     @Override
@@ -73,6 +107,6 @@ public class Continuation<T> implements Iterable<T>{
 
     @Override
     public Spliterator<T> spliterator() {
-        return Iterable.super.spliterator();
+        throw new UnsupportedOperationException();
     }
 }
