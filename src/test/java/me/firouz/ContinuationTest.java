@@ -11,7 +11,7 @@ public class ContinuationTest {
     int step = 0;
 
     @Test
-    public void continuationSteps() throws InterruptedException {
+    public void continuationSteps() throws InterruptedException, Continuation.IllegalCallException {
         ArrayList<String> steps = new ArrayList<>();
         int numberOfIterations = 10;
 
@@ -23,7 +23,7 @@ public class ContinuationTest {
                     steps.add("4:" + step++);
                 }
                 continuation.yield(null);
-            } catch (InterruptedException e) {
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         };
@@ -47,5 +47,23 @@ public class ContinuationTest {
                     else if(substep == 3)    assertEquals("1:"+j, steps.get(j));
                 }
         );
+    }
+
+    @Test
+    public void illegalYieldCallTest() {
+        Runnable runnable = () -> {};
+
+        continuation  = new Continuation<>(runnable);
+        assertThrowsExactly(Continuation.IllegalCallException.class, () -> continuation.yield(3));
+    }
+
+    @Test
+    public void illegalGoOnCallTest() {
+        Runnable runnable = () -> {
+            assertThrowsExactly(Continuation.IllegalCallException.class, () -> continuation.goOn());
+        };
+
+        continuation  = new Continuation<>(runnable);
+
     }
 }

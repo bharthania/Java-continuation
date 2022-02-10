@@ -7,6 +7,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 public class Continuation<T> implements Iterable<T>{
+    private final Thread ownerThread;
     private final Thread thread;
     private final ReentrantLock lock;
     private final Condition mainRoutineCondition;
@@ -14,13 +15,16 @@ public class Continuation<T> implements Iterable<T>{
     private T value;
 
     public Continuation(Runnable runnable) {
+        this.ownerThread = Thread.currentThread();
         this.thread = new Thread(runnable);
         lock = new ReentrantLock();
         mainRoutineCondition = lock.newCondition();
         subRoutineCondition = lock.newCondition();
     }
 
-    public void yield(T value) throws InterruptedException {
+    public void yield(T value) throws InterruptedException, IllegalCallException {
+        if(Thread.currentThread() != this.thread)
+            throw new IllegalCallException("yield() can only be called from within continuation Runnable.");
         try {
             this.value = value;
             lock.lock();
@@ -31,7 +35,9 @@ public class Continuation<T> implements Iterable<T>{
         }
     }
 
-    public T goOn() throws InterruptedException {
+    public T goOn() throws InterruptedException, IllegalCallException {
+        if(Thread.currentThread() != ownerThread)
+            throw new IllegalCallException("goOn() can only be called from within continuation owner thread.");
         try {
             lock.lock();
             if (thread.getState() == Thread.State.NEW) {
@@ -41,6 +47,12 @@ public class Continuation<T> implements Iterable<T>{
             return value;
         }finally {
             lock.unlock();
+        }
+    }
+
+    public static class IllegalCallException extends Exception {
+        public IllegalCallException(String message) {
+            super(message);
         }
     }
 
