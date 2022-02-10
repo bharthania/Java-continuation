@@ -4,6 +4,12 @@ import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 
+/***********************************************************************************
+ *  Note: This implementation is not following all the Iterable and Iterator
+ *          specifications. For example, it expects hasNext() to
+ *          be called before every next() call
+ **********************************************************************************/
+
 public class Generator<T> implements Iterable<T>{
     private final Continuation<T> continuation;
     private T value;
