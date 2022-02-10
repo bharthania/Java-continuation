@@ -12,8 +12,8 @@ public class Continuation<T> implements Iterable<T>{
     private final ReentrantLock lock;
     private final Condition mainRoutineCondition;
     private final Condition subRoutineCondition;
-    private T value;
-    private boolean finished = false;
+    private volatile T value;
+    private volatile boolean finished = false;
 
     public Continuation(Runnable runnable) {
         this.mainRoutineThread = Thread.currentThread();
