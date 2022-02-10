@@ -7,8 +7,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 public class Continuation<T> implements Iterable<T>{
-    private final Thread ownerThread;
-    private final Thread thread;
+    private final Thread mainRoutineThread;
+    private final Thread subRoutineThread;
     private final ReentrantLock lock;
     private final Condition mainRoutineCondition;
     private final Condition subRoutineCondition;
@@ -16,12 +16,12 @@ public class Continuation<T> implements Iterable<T>{
     private boolean finished = false;
 
     public Continuation(Runnable runnable) {
-        this.ownerThread = Thread.currentThread();
+        this.mainRoutineThread = Thread.currentThread();
         lock = new ReentrantLock();
         mainRoutineCondition = lock.newCondition();
         subRoutineCondition = lock.newCondition();
 
-        this.thread = new Thread(() -> {
+        this.subRoutineThread = new Thread(() -> {
             runnable.run();
             finished = true;
             try {
@@ -34,7 +34,7 @@ public class Continuation<T> implements Iterable<T>{
     }
 
     public void yield(T value) throws InterruptedException {
-        if(Thread.currentThread() != this.thread)
+        if(Thread.currentThread() != this.subRoutineThread)
             throw new IllegalCallException("yield() can only be called from within continuation Runnable.");
         try {
             this.value = value;
@@ -48,14 +48,14 @@ public class Continuation<T> implements Iterable<T>{
 
     public T goOn() throws InterruptedException {
         value = null;
-        if(Thread.currentThread() != ownerThread)
+        if(Thread.currentThread() != mainRoutineThread)
             throw new IllegalCallException("goOn() can only be called from within continuation owner thread.");
         if(finished)
             throw new IllegalCallException("goOn() can not be called on terminated continuation.");
         try {
             lock.lock();
-            if (thread.getState() == Thread.State.NEW) {
-                thread.start();
+            if (subRoutineThread.getState() == Thread.State.NEW) {
+                subRoutineThread.start();
             } else subRoutineCondition.signal();
             mainRoutineCondition.await();
             return value;
