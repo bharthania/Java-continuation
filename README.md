@@ -3,7 +3,9 @@
 Following is an example of how to use the Continuation.java. Its constructor receives a Runnable as the body of the routine that calls yield(s).  
 The very first goOn() call would start running the Runnable until it yields upon which the control is transferred back to the main routine where goOn() was invoked. This ping pong transfer of control between main and sub routine continues until Runnable finishes through the very last yield() call.
 ```java
-Continuation<Integer> cont = new Continuation<>(
+Continuation<Integer> cont;
+...
+cont = new Continuation<>(
     () -> {
         //Sub Routine
         System.out.println("2:subRoutine");
@@ -42,10 +44,12 @@ Note: The current Iterable and Iterator implementation does not comply with the 
 
 Bellow is an example of a generator that can emit integers starting from 0 up to ```Long.MAX_VALUE``` in a lazy way.
 ```java
-Generator<Long> intGenerator = new Generator<>(
+Generator<Long> intGenerator;
+...
+intGenerator = new Generator<>(
     () -> {
         for(long i=0; i<Long.MAX_VALUE; i++) {
-            generator.yield(i);
+            intGenerator.yield(i);
         }    
     }        
 );
