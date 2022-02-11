@@ -38,7 +38,7 @@ System.out.println("7:mainRoutine");
 ```
 
 Generator.java utilizes Continuation.java to implement Iterable interface and act as a ***lazy generator***. Its yield() method emits values as the ***Iterator*** asks for next value.  
-Note: The current Iterable and Iterator implementation does not comply with the Iterable and Iterator specifications completely. For example it requires hasNext() methos to be called before every next() call.
+Note: The current Iterable and Iterator implementation does not comply with the Iterable and Iterator specifications completely. For example it requires hasNext() method to be called before every next() call.
 
 Bellow is an example of a generator that can emit integers starting from 0 up to ```Long.MAX_VALUE``` in a lazy way.
 ```java
@@ -55,7 +55,7 @@ for(int j: intGenerator)
     else break;
 ```
 
-Following is the stripped down version of the Continuation.java to provide an idea on how the yield mechanism is simulated. Note that goOn() and yield() methos are being called from two different threads. using lock and conditions the class simulates the back and forth transfer of control between two different routines.
+Following is the stripped down version of the Continuation.java to provide an idea on how the yield mechanism is simulated. Note that goOn() and yield() methods are being called from two different threads. using lock and conditions the class simulates the back and forth transfer of control between two different routines.
 ```java
 public void yield(T value) throws InterruptedException {
     try {
