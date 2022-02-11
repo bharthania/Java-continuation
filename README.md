@@ -1,6 +1,6 @@
 ## Simulating Continuation in Java Via Threads
 
-Following is an example of how to use the Continuation.java. Its constructor receives a Runnable as the body of the method that yields.  
+Following is an example of how to use the Continuation.java. Its constructor receives a Runnable as the body of the routine that calls yield(s).  
 The very first goOn() call would start running the Runnable until it yields upon which the control is transferred back to the main routine where goOn() was invoked. This ping pong transfer of control between main and sub routine continues until Runnable finishes through the very last yield() call.
 ```java
 Continuation<Integer> cont = new Continuation<>(
