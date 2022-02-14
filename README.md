@@ -1,4 +1,8 @@
-## Simulating Continuation in Java Via Threads
+## Simulating Continuation in Java Via Threads and Trampoline Pattern
+
+###Using Threads
+
+----------------------
 
 Following is an example of how to use the Continuation.java. Its constructor receives a Runnable as the body of the routine that calls yield(s).  
 The very first goOn() call would start running the Runnable until it yields upon which the control is transferred back to the main routine where goOn() was invoked. This ping pong transfer of control between main and sub routine continues until Runnable finishes through the very last yield() call.
@@ -40,7 +44,7 @@ System.out.println("7:mainRoutine");
 ```
 
 Generator.java utilizes Continuation.java to implement Iterable interface and act as a ***lazy generator***. Its yield() method emits values as the ***Iterator*** asks for next value.  
-Note: The current Iterable and Iterator implementation does not comply with the Iterable and Iterator specifications completely. For example it requires hasNext() method to be called before every next() call.
+>Note: The current Iterable and Iterator implementation is incomplete and does not comply with the specifications completely. For example it requires hasNext() method to be called before every next() call.
 
 Bellow is an example of a generator that can emit integers starting from 0 up to ```Long.MAX_VALUE``` in a lazy way.
 ```java
@@ -85,4 +89,26 @@ public T goOn() throws InterruptedException {
         lock.unlock();
     }
 }
+```
+
+###Using Trampoline
+
+--------------------
+```java
+Continuation<Integer> myCont = new Continuation<Integer>() {
+    int i = -1;
+
+    @Override
+    public Integer start() {
+        i++;
+        if(i < 100) {
+            thenRun(this::next);
+        }
+        return i;
+    }
+};
+
+IntStream.range(0, 10000).forEach(
+        i -> System.out.println(myCont.goOn())
+);
 ```
