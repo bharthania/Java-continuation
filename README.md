@@ -1,6 +1,6 @@
 ## Simulating Continuation in Java Via Threads and Trampoline Pattern
 
-###Using Threads
+### Using Threads
 
 ----------------------
 
@@ -91,7 +91,7 @@ public T goOn() throws InterruptedException {
 }
 ```
 
-###Using Trampoline
+### Using Trampoline
 
 --------------------
 ```java
